@@ -6,21 +6,35 @@ conn = connection.get_conn()
 
 
 class TransactionHandlers:
+    """Transaction object"""
     @staticmethod
     def commit(table_data):
+        """
+        Commit transaction
+        :param table_data:
+        """
         InMemConnection.save(conn, table_data)
 
     @staticmethod
     def rollback(backup):
+        """
+        Rollback changes
+        :param backup: backup db data. Example {"1": "a", "2": "b"}
+        """
         InMemConnection.save(conn, backup)
 
     @staticmethod
     def begin():
+        """
+        Save backup
+        :return: backup db data. Example: {"1": "a", "2": "b"}
+        """
         table_data = InMemConnection.read(conn)
         return table_data
 
 
 def atomic(func):
+    """Decorator that provides atomic transactions"""
     def wrapper(*args, **kwargs):
         backup = TransactionHandlers.begin()
         resp = {}
@@ -36,13 +50,23 @@ def atomic(func):
 
 
 class CRUDHandlers:
+    """CRUD object"""
     @staticmethod
     def select():
+        """
+        Select logic
+        :return:
+        """
         return InMemConnection.read(conn)
 
     @staticmethod
     @atomic
-    def insert(data):
+    def insert(data: list) -> dict:
+        """
+        Insert logic
+        :param data: data to save. Example ["a", "b"]
+        :return: db data. Example {"1": "a", "2": "b"}
+        """
         table_data = InMemConnection.read(conn)
         last_id = 0
         if table_data:
@@ -52,7 +76,12 @@ class CRUDHandlers:
 
     @staticmethod
     @atomic
-    def delete(ids):
+    def delete(ids: list) -> dict:
+        """
+        Insert logic
+        :param ids: data ids to delete. Example [1, 2]
+        :return: db data. Example {"3": "a", "4": "b"}
+        """
         table_data = InMemConnection.read(conn)
         for idx in ids:
             table_data.pop(str(idx))
